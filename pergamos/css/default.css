@@ -1,0 +1,310 @@
+#custom-container {
+    font-family: 'Arial', sans-serif;
+    color: #333333; /* Dark Grey text */
+    align-items: left;
+}
+
+#custom-container .collapsible-container {
+    border-radius: 5px; /* Slightly smaller border radius */
+    margin-bottom: 10px; /* Reduced space between collapsible containers */
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1); /* Adjusted shadow for smaller size */
+    overflow: hidden;
+}
+
+#custom-container .header {
+    padding: 5px; /* Reduced padding */
+    background-color: #89A8B2; /* Teal header */
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px; /* Smaller font size */
+    color: #FFFFFF; /* White text for header */
+    border-bottom: 1px solid #B3C8CF;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Slightly smaller gap between triangle and text */
+    transition: background-color 0.3s ease;
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+}
+
+#custom-container .header:hover {
+    background-color: #72929E; /* Slightly darker teal on hover */
+}
+
+#custom-container .content {
+    display: none; /* Initially hidden */
+    padding: 15px; /* Reduced padding */
+    background-color: #B3C8CF; /* Light Blue-Grey content background */
+}
+
+#custom-container .horizontal-wrapper {
+    display: flex; /* Flex layout for horizontal stacking */
+    gap: 20px;
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+
+#custom-container .container {
+    padding: 5px;
+    background-color: #3B1C32; 
+    border-radius: 10px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 150px; /* Ensure containers have a minimum width */
+    text-align: center;
+}
+
+#custom-container .container:hover {
+    transform: scale(1.005); /* Slight zoom on hover */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#custom-container .table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    width: 100%;
+}
+
+#custom-container .table th, .table td {
+    border: 1px solid #89A8B2; /* Teal cell borders */
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+}
+
+#custom-container .table td {
+    font-weight: bold;
+    background-color: #F1F0E8; /* Off-White cell background */
+    color: #333333; /* Dark Grey text */
+}
+
+#custom-container .table th {
+    font-weight: bold;
+    background-color: #89A8B2; /* Teal header cells */
+    color: #FFFFFF; /* White text for header cells */
+}
+
+#custom-container .triangle {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 7px solid #FFFFFF; /* Default pointing up (collapsed) */
+    transition: transform 0.3s ease; /* Smooth rotation */
+}
+#custom-container .triangle.expanded {
+    transform: rotate(90deg); /* Pointing down when expanded */
+}
+#custom-container .vertical-layout {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+}
+#custom-container .horizontal-layout {
+    display: flex;
+    flex-direction: row; /* Arrange children horizontally */
+    gap: 10px; /* Space between items */
+    overflow-x: auto; /* Allow scrolling if content overflows */
+}
+
+#custom-container #gif-container img {
+    display: none;
+}
+#custom-container #gif-container img.active {
+    display: block;
+}
+#custom-container .controls {
+    margin-top: 10px;
+}
+#custom-container .controls button {
+    margin: 5px;
+}
+
+
+#image-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+#image-container .header {
+    padding: 5px; /* Reduced padding */
+    background-color: #89A8B2; /* Teal header */
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px; /* Smaller font size */
+    color: #FFFFFF; /* White text for header */
+    border-bottom: 1px solid #B3C8CF;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Slightly smaller gap between triangle and text */
+    transition: background-color 0.3s ease;
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    width: 100%;
+}
+
+
+/* Tab Container */
+.tabbed-container {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+    background-color: white;
+}
+
+/* Tab Headers */
+.tab-headers {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+/* Tab Buttons */
+.tab-button {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    background: none;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+/* Active Tab */
+.tab-button.active {
+    background-color: #3498db;
+    color: white;
+    border-bottom: 2px solid #3498db;
+}
+
+/* Tab Button Hover Effect */
+.tab-button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Tab Content */
+.tab-contents {
+    padding: 16px;
+    background-color: white;
+}
+
+/* Tab Content Panels */
+.tab-content {
+    display: none;
+}
+
+/* Active Tab Content */
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.markdown-body ul, .markdown-body ol {
+    display: block;
+    margin-left: 20px;
+    padding-left: 20px;
+}
+
+.markdown-body li {
+    display: list-item;
+    margin-bottom: 5px;
+}
+
+
+/* Blockquotes */
+.markdown-body blockquote {
+    border-left: 5px solid #3498db;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #f8f8f8;
+    font-style: italic;
+    color: #555;
+}
+
+
+
+
+
+/* General block code styling (light theme) */
+.markdown-body pre {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border: 1px solid #d1d5db;
+    padding: 10px;
+    overflow-x: auto;
+    border-radius: 5px;
+    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
+}
+
+/* Remove background and color override for syntax highlighting */
+.markdown-body pre code {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    color: inherit !important;
+}
+
+/* Inline code (ONLY for single-line `code`) */
+.markdown-body p code, 
+.markdown-body li code {
+    background-color: #e9ecef !important;
+    color: #d63384 !important; /* Color for inline code */
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
+}
+
+
+
+.markdown-body pre, 
+.markdown-body code {
+    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
+    font-size: 14px; /* Adjust for better readability */
+}
+
+
+/* Bluloco Light Syntax Highlighting */
+.codehilite .k { color: #a277ff !important; } /* Keywords */
+.codehilite .n { color: #403f53 !important; } /* Variable names */
+.codehilite .s { color: #ff7733 !important; } /* Strings */
+.codehilite .c { color: #266337 !important; font-style: italic; } /* Comments */
+.codehilite .o { color: #4d9375 !important; } /* Operators */
+.codehilite .p { color: #403f53 !important; } /* Punctuation */
+.codehilite .m { color: #d4a72c !important; } /* Numbers */
+.codehilite .f { color: #007acc !important; } /* Functions */
+.codehilite .d { color: #d19a66 !important; } /* Decorators */
+.codehilite .t { color: #d63384 !important; } /* Types */
+.codehilite .x { color: #78767e !important; } /* Other */
+
+/* Combinations like nf (variable names + functions) */
+.codehilite .nf { color: #007acc !important; } /* Variable names + Functions */
+.codehilite .kt { color: #a277ff !important; } /* Keywords + Types */
+.codehilite .nd { color: #d19a66 !important; } /* Variable names + Decorators */
+.codehilite .c1 { color: #266337 !important; font-style: italic; } /* Comments + 1 */
+.codehilite .c2 { color: #266337 !important; font-style: italic; } /* Comments + 2 */
+.codehilite .cp { color: #266337 !important; font-style: italic; } /* Comments + Punctuation */
+.codehilite .cm { color: #266337 !important; font-style: italic; } /* Comments + Multiline */
+.codehilite .ch { color: #266337 !important; font-style: italic; } /* Comments + Hashbang */
+.codehilite .cd { color: #266337 !important; font-style: italic; } /* Comments + Documentation */
+
+/* Strings */
+.codehilite .s1 { color: #ff7733 !important; } /* Single quoted strings */
+.codehilite .s2 { color: #ff7733 !important; } /* Double quoted strings */
+.codehilite .se { color: #ff7733 !important; } /* String escapes */
+
+
+/* Ensure spacing is correct */
+pre code {
+    display: block;
+    padding: 0;  /* Prevent extra padding */
+}
+
