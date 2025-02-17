@@ -38,8 +38,7 @@ pip install -e .[dev]
 import pergamos as pg
 
 doc = pg.Document("My Report")
-doc.append(pg.Title("🚀 My Dynamic Report", level=1))
-
+doc.append(pg.Text("🚀 My Dynamic Report", tag='h1'))
 doc.append(pg.Text("This is a dynamically generated report using Pergamos."))
 
 doc.save("report.html")
@@ -67,10 +66,11 @@ code = """
 ```python
 def hello():
     print("Hello, World!")
-```
+\```
 """
 doc.append(pg.Markdown(code))
 ```
+
 🔹 Renders Python **syntax-highlighted** inside a styled `<pre><code>` block.
 
 ---
