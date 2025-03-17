@@ -201,13 +201,16 @@ class ContainerElement(HTMLBaseElement):
     HTML Elements that only have content (not children), like span, p, h1, ...
 """
 class ContentElement(HTMLBaseElement):
-    def __init__(self, tag: str, content: str = "", **kwargs):
+    def __init__(self, tag: str, content: str = "", class_name: Optional[str] = None, **kwargs):
         super().__init__(tag, **kwargs)
         self.content = content
+        self.class_name = class_name
     
     def __html__(self, tab: int = 0) -> str:
         indent = '\t' * tab
         s = f'{indent}<{self.tag}'
+        if self.class_name:
+            s += f' class="{self.class_name}"'
         if len(self.attributes) > 0:
             s += f' {self._format_attributes()}'
         s += f'>{self.content}</{self.tag}>'
@@ -841,7 +844,7 @@ class Terminal(Div):
         sc = Div(class_name="fakeScreen")
 
         # Get the rendered_html as a list of lines
-        self.rendered_html = self._convert_terminal(text, p_class = "lineTerminal")
+        self.rendered_html = self._convert_terminal(text, class_name = "lineTerminal")
 
         # extend 
         sc.extend(self.rendered_html)
@@ -851,14 +854,14 @@ class Terminal(Div):
 
 
     @staticmethod
-    def _convert_terminal(text: str, p_class = "lineTerminal") -> str:
+    def _convert_terminal(text: str, class_name = "lineTerminal") -> str:
         """Converts terminal text to HTML with syntax highlighting."""
         if not isinstance(text, list):
             text = text.split("\n")
         
         ps = []
         for line in text:
-            subp = P(line, class_name=p_class)
+            subp = P(line, class_name=class_name)
             ps.append(subp)
 
         return ps
