@@ -17,8 +17,8 @@ toggleContent = f"""<script>
     """
 
 
-switchTab = """// Switch between tabs
-    <script>
+switchTab = """<script>
+    // Switch between tabs
     function switchTab(tabId) {
         let contents = document.getElementsByClassName('tab-content');
         for (let content of contents) {

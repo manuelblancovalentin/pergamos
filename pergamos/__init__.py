@@ -27,7 +27,9 @@ from .js import SCRIPTS
 
 # Import objects 
 from .objects import Div, Text, Document, CollapsibleContainer, Table, Plot, InteractivePlot, Image, List
-from .objects import Container, TabbedContainer, Markdown, Latex 
+from .objects import Container, TabbedContainer, Markdown, Latex, Th, Tr, Td, Thead, Tbody, Tfoot, Terminal
 
 #Tree, Video, Audio, File, Button, Link, Input, Select, TextArea, Form
 
+# Define wrappers for decorators
+from .wrappers import printable, html

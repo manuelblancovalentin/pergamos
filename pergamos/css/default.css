@@ -9,6 +9,8 @@
     margin-bottom: 10px; /* Reduced space between collapsible containers */
     box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1); /* Adjusted shadow for smaller size */
     overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 #custom-container .header {
@@ -145,7 +147,6 @@
 /* Tab Container */
 .tabbed-container {
     width: 100%;
-    max-width: 600px;
     border-radius: 8px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -308,3 +309,70 @@ pre code {
     padding: 0;  /* Prevent extra padding */
 }
 
+
+
+/* TERMINAL EMULATOR */
+body .terminal{
+    background-color: #272727;
+    padding: 10px;
+}
+
+.fakeButtons {
+height: 10px;
+width: 10px;
+border-radius: 50%;
+border: 1px solid #000;
+position: relative;
+top: 6px;
+left: 6px;
+background-color: #ff3b47;
+border-color: #9d252b;
+display: inline-block;
+}
+
+.fakeMinimize {
+left: 11px;
+background-color: #ffc100;
+border-color: #9d802c;
+}
+
+.fakeZoom {
+left: 16px;
+background-color: #00d742;
+border-color: #049931;
+}
+
+.fakeMenu {
+width: 100%;
+box-sizing: border-box;
+height: 25px;
+background-color: #bbb;
+margin: 0 auto;
+border-top-right-radius: 5px;
+border-top-left-radius: 5px;
+}
+
+.fakeScreen {
+background-color: #151515;
+box-sizing: border-box;
+width: 100%;
+height: 100%;
+margin: 0 auto;
+padding: 20px;
+border-bottom-left-radius: 5px;
+border-bottom-right-radius: 5px;
+}
+
+
+.lineTerminal {
+color: #fff;
+position: relative;
+margin-left: 10px;
+text-align: left;
+font-size: 1em;
+font-family: monospace;
+white-space: preserve;
+overflow: hidden;
+margin-bottom: 0px;
+margin-top: 0px;
+}

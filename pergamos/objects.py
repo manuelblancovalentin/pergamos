@@ -151,15 +151,38 @@ class ContainerElement(HTMLBaseElement):
         super().__init__(tag, style = style, **kwargs)
         self.children: TypingList[HTMLBaseElement] = []
     
+    def find_required_scripts(self, children, recursive = False):
+        for child in children:
+            if hasattr(child, 'required_scripts'):
+                if hasattr(child, 'children') and recursive:
+                    child.find_required_scripts(child.children, recursive = recursive)
+                self.required_scripts.update(child.required_scripts)
+            elif isinstance(child, list):
+                # Recursively
+                self.find_required_scripts(child, recursive = recursive)
+        
+
     def append(self, child: HTMLBaseElement):
         if self.VALID_CHILDREN is not None and child.tag not in self.VALID_CHILDREN:
             raise ValueError(f"<{self.tag}> cannot contain <{child.tag}>")
         self.children.append(child)
-        self.required_scripts.update(child.required_scripts)
+        if hasattr(child, 'required_scripts'):
+            self.required_scripts.update(child.required_scripts)
+        elif isinstance(child, list):
+            self.find_required_scripts(child)
+    
+    def extend(self, children: TypingList[HTMLBaseElement]):
+        for child in children:
+            self.append(child)
     
     def __html__(self, tab: int = 0) -> str:
         indent = '\t' * tab
-        child_html = '\n'.join(child.__html__(tab + 1) for child in self.children)
+        child_html = ""
+        if isinstance(self.children, list):
+            try:
+                child_html = '\n'.join(child.__html__(tab + 1) for child in self.children)
+            except:
+                pass
         s = f'{indent}<{self.tag}'
         if self.id:
             s += f' id="{self.id}"'
@@ -231,6 +254,9 @@ class Link(SelfClosingElement):
 class Div(ContainerElement):
     def __init__(self, **kwargs):
         super().__init__('div', **kwargs)
+    
+    # def append(self, child):
+    #     super().append(child)
 
 """ Text Elements """
 class Span(ContentElement):
@@ -348,21 +374,29 @@ class Table(ContainerElement):
 
 class Tr(ContainerElement):
     VALID_CHILDREN = ['td', 'th']
-    def __init__(self):
-        super().__init__('tr')
+    def __init__(self, **kwargs):
+        super().__init__('tr', **kwargs)
 
 class Td(ContainerElement):
-    def __init__(self, content: Optional[str] = ""):
-        super().__init__('td')
+    def __init__(self, content: Optional[str] = "", attributes: Optional[Dict[str, str]] = None, **kwargs):
+        super().__init__('td', attributes = attributes, **kwargs)
         self.content = content
     
     def __html__(self, tab: int = 0) -> str:
         indent = '\t' * tab
-        return f'{indent}<{self.tag}>{self.content}</{self.tag}>'
+        s = f'{indent}<{self.tag}'
+        if len(self.attributes) > 0:
+            s += f' {self._format_attributes()}'
+        s += '>'
+        s += f'{self.content}'
+        s += f'</{self.tag}>'
+        return s
+    
+        # return f'{indent}<{self.tag}>{self.content}</{self.tag}>'
 
 class Th(ContainerElement):
-    def __init__(self, content: Optional[str] = ""):
-        super().__init__('th')
+    def __init__(self, content: Optional[str] = "", **kwargs):
+        super().__init__('th', **kwargs)
         self.content = content
     
     def __html__(self, tab: int = 0) -> str:
@@ -453,26 +487,59 @@ class DataFrameTable(Table):
     """Handles rendering pandas DataFrames into an HTML table with headers."""
     def __init__(self, df: pd.DataFrame):
         super().__init__()
+
+        # Create table header
         thead = Thead()
         header_row = Tr()
-        for col in df.columns:
-            header_row.append(Th(content=str(col)))
+
+        # Auto-detect whether to show the index
+        show_index = self._should_show_index(df)
+
+        # Add an empty header for the index column if `show_index` is enabled
+        if not show_index:
+            # Add headers for all dataframe columns
+            for col in df.columns:
+                header_row.append(Th(content=str(col)))
         thead.append(header_row)
         self.append(thead)
+
+        # Create table body
         tbody = Tbody()
-        for _, row_data in df.iterrows():
+        for index, row_data in df.iterrows():
             row = Tr()
+
+            # Add index column if `show_index` is enabled
+            if show_index:
+                row.append(Th(content=str(index)))
+            
+            # Add all other row values
             for cell in row_data:
                 row.append(Td(content=str(cell)))
             tbody.append(row)
+        
         self.append(tbody)
+    
+    @staticmethod
+    def _should_show_index(df: pd.DataFrame) -> bool:
+        """Auto-detect if index should be shown."""
+        # Condition (1): Check if the index is NOT the default numerical range
+        default_index = pd.RangeIndex(start=0, stop=len(df), step=1)
+        is_default_index = df.index.equals(default_index)
+
+        # Condition (2): If there's only one column OR all column names are numbers
+        all_numeric_column_names = all(isinstance(col, int) or str(col).isdigit() for col in df.columns)
+        is_single_column = df.shape[1] == 1
+
+        return not is_default_index or is_single_column or all_numeric_column_names
 
 
 """ Container (Custom) just to plot some elements gathered in groups """
 class Container(Div):
     """Represents a collapsible section that can contain other HTML elements."""
     def __init__(self, title: str = None, layout: str = "vertical", id: Optional[str] = None, **kwargs):
+        
         super().__init__(id=id or "custom-container", class_name="collapsible-container", **kwargs)
+        
         self.layout = layout
         self.title = title
 
@@ -487,10 +554,29 @@ class Container(Div):
         self.content_div = Div(class_name="content")
         self.content_div.append(self.wrapper)
 
+        # Restart the children (otherwise the list will be out of order because of the super call)
+        self.children = []
+
         # Build structure (using super, cause we modified the append method locally)
+        # if title:
+        #     Div.append(self, self.header)
+        # Div.append(self, self.content_div)
         if title:
             super().append(self.header)
         super().append(self.content_div)
+    
+    # def append(self, element: HTMLBaseElement):
+    #     """Appends content to the wrapper div."""
+    #     super().append(element)
+    #     if hasattr(element, 'required_scripts'):
+    #         self.required_scripts.update(element.required_scripts)  # Merge scripts
+    #     elif isinstance(element, list):
+    #         self.find_required_scripts(element)
+    
+    # def extend(self, elements: TypingList[HTMLBaseElement]):
+    #     for element in elements:
+    #         self.append(element)
+    
         
 
 """ Collapsible container """
@@ -518,13 +604,22 @@ class CollapsibleContainer(Container):
         self.children = []
 
         # Build structure (using super, cause we modified the append method locally)
+        #Div.append(self, self.header)
+        #Div.append(self, self.content_div)
         super().append(self.header)
         super().append(self.content_div)
 
     def append(self, element: HTMLBaseElement):
         """Appends content to the wrapper div."""
         self.wrapper.append(element)
-        self.required_scripts.update(element.required_scripts)  # Merge scripts
+        if hasattr(element, 'required_scripts'):
+            self.required_scripts.update(element.required_scripts)  # Merge scripts
+        elif isinstance(element, list):
+            self.find_required_scripts(element)
+    
+    def extend(self, elements: TypingList[HTMLBaseElement]):
+        for element in elements:
+            self.append(element)
     
 
 
@@ -557,7 +652,7 @@ class Image(ContainerElement):
 
 
             header = Div(class_name="header")
-            header.append(Span(f"Image: {source}"))
+            header.append(Span(f"Image: {source}")) if not source.startswith('/tmp/') and not source.startswith('/var/') else header.append(Span("Image"))
             self.append(header)
         
         elif isinstance(source, (plt.Figure, plt.Axes)):
@@ -610,7 +705,7 @@ class InteractivePlot(ContainerElement):
 class TabbedContainer(Div):
     """A container with multiple tabs, allowing tabbed navigation."""
     
-    def __init__(self, tabs: Dict[str, HTMLBaseElement], **kwargs):
+    def __init__(self, tabs: Dict[str, HTMLBaseElement] = None, **kwargs):
         """
         :param tabs: A dictionary where keys are tab names and values are content elements.
         """
@@ -620,29 +715,56 @@ class TabbedContainer(Div):
         self.tab_headers = Div(class_name="tab-headers")
         self.tab_contents = Div(class_name="tab-contents")
 
-        for index, (tab_name, content) in enumerate(tabs.items()):
-            tab_id = f"tab-{index}"
-            button = Div(class_name="tab-button", attributes={"onclick": f"switchTab('{tab_id}')"})
-            button.append(Span(content=tab_name))
+        tab_divs = {}
+        if tabs is not None:
+            for index, (tab_name, content) in enumerate(tabs.items()):
+                tab_divs[tab_name] = self.add_tab(tab_name, content)
 
-            content_div = Div(class_name="tab-content", attributes={"id": tab_id})
-            content_div.append(content)
-
-            # Set first tab as active
-            if index == 0:
-                button.attributes["class"] = button.attributes.get("class", "") + " active"
-                content_div.attributes["style"] = "display: block;"
-            else:
-                content_div.attributes["style"] = "display: none;"
-
-            self.tab_headers.append(button)
-            self.tab_contents.append(content_div)
+        self.tab_divs = tab_divs
 
         self.append(self.tab_headers)
         self.append(self.tab_contents)
 
         # Ensure JavaScript is included
         self.required_scripts.add("switchTab")
+
+    def __getitem__(self, key: str) -> HTMLBaseElement:
+        return self.tab_divs.get(key, None)
+
+    def add_tab(self, tab_name: str, content: HTMLBaseElement):
+
+        # Tab-id is the next in the sequence
+        tab_id = f"tab-{len(self.tab_headers.children)}"
+        button = Div(class_name="tab-button", attributes={"onclick": f"switchTab('{tab_id}')"})
+        button.append(Span(content=tab_name))
+
+        content_div = Div(class_name="tab-content", attributes={"id": tab_id})
+        if isinstance(content, list):
+            if len(content) > 0:
+                content_div.extend(content)
+        else:
+            content_div.append(content)
+
+        # Set first tab as active
+        if len(self.tab_headers.children) == 0:
+            button.attributes["class"] = button.attributes.get("class", "") + " active"
+            content_div.attributes["style"] = "display: block;"
+        else:
+            content_div.attributes["style"] = "display: none;"
+        
+        self.tab_headers.append(button)
+        self.tab_contents.append(content_div)
+
+        # Add required scripts for content 
+        if hasattr(content, 'required_scripts'):
+            self.required_scripts.update(content.required_scripts)
+        elif isinstance(content, list):
+            self.find_required_scripts(content)
+
+        return content_div
+        
+
+        
 
 
 class Markdown(Div):
@@ -695,6 +817,52 @@ class Latex(Div):
         # Ensure MathJax is included
         self.required_scripts.add("mathjax")
 
+
+class OSXMenu(Div):
+    """A div that renders an OSX-style menu bar."""
+    def __init__(self, **kwargs):
+        super().__init__(class_name="fakeMenu", **kwargs)
+        self.append(Div(class_name="fakeButtons fakeClose"))
+        self.append(Div(class_name="fakeButtons fakeMinimize"))
+        self.append(Div(class_name="fakeButtons fakeZoom"))
+
+""" Terminal like element (Text) """
+class Terminal(Div):
+    """A div that renders terminal-like text with syntax highlighting."""
+    
+    def __init__(self, text: str, **kwargs):
+        super().__init__(class_name="terminal", **kwargs)
+        self.text = text
+
+        # Get fakeMenu 
+        self.append(OSXMenu())
+
+        # Create a fakeScreen
+        sc = Div(class_name="fakeScreen")
+
+        # Get the rendered_html as a list of lines
+        self.rendered_html = self._convert_terminal(text, p_class = "lineTerminal")
+
+        # extend 
+        sc.extend(self.rendered_html)
+
+        # Append the screen
+        self.append(sc)
+
+
+    @staticmethod
+    def _convert_terminal(text: str, p_class = "lineTerminal") -> str:
+        """Converts terminal text to HTML with syntax highlighting."""
+        if not isinstance(text, list):
+            text = text.split("\n")
+        
+        ps = []
+        for line in text:
+            subp = P(line, class_name=p_class)
+            ps.append(subp)
+
+        return ps
+
 """
     HTML Document custom class
 """
@@ -706,12 +874,23 @@ class Document:
         self.styles = pg.THEMES[theme] if theme in pg.THEMES else CSSStyle()  # Load theme-based styles
         self.required_scripts: Set[str] = set()
     
+    def find_required_scripts(self, children, recursive = False):
+        ContainerElement.find_required_scripts(self, children, recursive = recursive)
+
     def append(self, element: HTMLBaseElement):
         self.children.append(element)
         if element.style:
             self.styles += element.style  # Merge styles dynamically
-        self.required_scripts.update(element.required_scripts)  # Merge scripts
+        
+        if hasattr(element, 'required_scripts'):
+            self.required_scripts.update(element.required_scripts)  # Merge scripts
+        elif isinstance(element, list):
+            self.find_required_scripts(element)
     
+    def extend(self, elements: TypingList[HTMLBaseElement]):
+        for element in elements:
+            self.append(element)
+
     def __html__(self, tab: int = 0) -> str:
         # get scripts 
         scripts = [SCRIPTS[script] for script in self.required_scripts]
@@ -736,5 +915,7 @@ class Document:
 
     # Save to document 
     def save(self, filename: str):
+        # Make sure we are up-to-date with the required_scripts of all contents 
+        self.find_required_scripts(self.children, recursive=True)
         with open(filename, 'w') as f:
             f.write(self.__html__())
