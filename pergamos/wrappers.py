@@ -100,11 +100,17 @@ def parse_serial_obj(obj):
 # IPython display inline
 from IPython.display import display, HTML
 
-# We want to create an "html" function that will display the HTML representation of the object
+#We want to create an "html" function that will display the HTML representation of the object
 def html(obj, theme = 'default'):
     # if obj has attr html, then we can just display it
     if hasattr(obj, 'html'):
-        _cached_html = obj.html
+        if isinstance(obj.html, HTMLBaseElement):
+            obj = obj.html
+        #_cached_html = obj.html
+        # check if callable or not 
+        #if callable(_cached_html):
+        #    _cached_html = _cached_html()
+        
         if not isinstance(obj, Document):
             # We have to add styles 
             styles = pg.THEMES[theme]
@@ -112,6 +118,5 @@ def html(obj, theme = 'default'):
             # And the scripts
             scripts = [pg.SCRIPTS[script] for script in obj.required_scripts]
             sc = "".join(scripts)
-            _cached_html = f'<style>{st}</style>\n{obj.html}\n{sc}'
+            _cached_html = "<DOCTYPE html><html>" + f'<style>{st}</style>\n<body>\n{obj.html}\n{sc}</body></html>'
         return display(HTML(_cached_html))
-    

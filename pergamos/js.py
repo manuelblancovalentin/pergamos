@@ -39,8 +39,14 @@ switchTab = """<script>
 mathjax = """
     <script>
         MathJax = {
-            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-            svg: { fontCache: 'global' }
+            tex: { inlineMath: [['$', '$']] },
+            svg: { fontCache: 'global' },
+            options: { processHtmlClass: 'math-content' },
+            macros: {
+                beginenumerate: "\\begin{array}{l}",
+                endenumerate: "\\end{array}",
+                item: "\\quad \\bullet \\quad"
+            }
         };
     </script>
     <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

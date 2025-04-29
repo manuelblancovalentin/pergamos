@@ -106,6 +106,31 @@
     gap: 10px; /* Space between items */
     overflow-x: auto; /* Allow scrolling if content overflows */
 }
+#custom-container .vertical-wrapper {
+overflow-x: auto;
+overflow-y: hidden; /* Optional: hides vertical scroll */
+white-space: nowrap;
+padding-bottom: 8px; /* Optional: space below scroll bar */
+}
+
+#custom-container .vertical-wrapper img {
+display: inline-block;
+max-height: 100%;   /* allows vertical expansion */
+height: auto;
+}
+
+#custom-container .vertical-wrapper::-webkit-scrollbar {
+height: 8px; /* set a height */
+}
+
+#custom-container .vertical-wrapper::-webkit-scrollbar-thumb {
+background-color: rgba(100, 100, 100, 0.6);
+border-radius: 4px;
+}
+
+#custom-container .vertical-wrapper::-webkit-scrollbar-track {
+background-color: rgba(200, 200, 200, 0.2);
+}
 
 #custom-container #gif-container img {
     display: none;

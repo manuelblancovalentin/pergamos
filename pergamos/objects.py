@@ -242,8 +242,8 @@ class Br(SelfClosingElement):
         super().__init__('br')
 
 class Hr(SelfClosingElement):
-    def __init__(self):
-        super().__init__('hr')
+    def __init__(self, **kwargs):
+        super().__init__('hr', **kwargs)
 
 class Meta(SelfClosingElement):
     def __init__(self, attributes: Optional[Dict[str, str]] = None):
@@ -260,6 +260,13 @@ class Div(ContainerElement):
     
     # def append(self, child):
     #     super().append(child)
+
+
+# A HREF
+class A(ContainerElement):
+    def __init__(self, href: str, **kwargs):
+        super().__init__('a', **kwargs)
+        self.attributes['href'] = href
 
 """ Text Elements """
 class Span(ContentElement):
@@ -361,17 +368,17 @@ class Table(ContainerElement):
         super().__init__('table', class_name='table', **kwargs)
 
     @staticmethod
-    def from_data(data: TypingList[TypingList[str]]):
+    def from_data(data: TypingList[TypingList[str]], **kwargs) -> 'Table':
         """Generates a table from a list of lists."""
         if isinstance(data, list) and all(isinstance(row, list) for row in data):
             if all(isinstance(cell, str) for row in data for cell in row):
-                return ListTable(data)
+                return ListTable(data, **kwargs)
             elif all(isinstance(cell, (int, float)) for row in data for cell in row):
-                return ListTable(data)
+                return ListTable(data, **kwargs)
         elif isinstance(data, np.ndarray):
-            return NumpyArrayTable(data)
+            return NumpyArrayTable(data, **kwargs)
         elif isinstance(data, pd.DataFrame):
-            return DataFrameTable(data)
+            return DataFrameTable(data, **kwargs)
         else:
             raise TypeError(f'Invalid data type for table: {type(data)}')
 
@@ -404,28 +411,32 @@ class Th(ContainerElement):
     
     def __html__(self, tab: int = 0) -> str:
         indent = '\t' * tab
-        return f'{indent}<{self.tag}>{self.content}</{self.tag}>'
+        s = f'{indent}<{self.tag}'
+        if len(self.attributes) > 0:
+            s += f' {self._format_attributes()}'
+        s += f'>{self.content}</{self.tag}>'
+        return s
 
 class Thead(ContainerElement):
     VALID_CHILDREN = ['tr']
-    def __init__(self):
-        super().__init__('thead')
+    def __init__(self, **kwargs):
+        super().__init__('thead', **kwargs)
 
 class Tbody(ContainerElement):
     VALID_CHILDREN = ['tr']
-    def __init__(self):
-        super().__init__('tbody')
+    def __init__(self, **kwargs):
+        super().__init__('tbody', **kwargs)
 
 class Tfoot(ContainerElement):
     VALID_CHILDREN = ['tr']
-    def __init__(self):
-        super().__init__('tfoot')
+    def __init__(self, **kwargs):
+        super().__init__('tfoot', **kwargs)
 
 
 """ List of lists table """
 class ListTable(Table):
     """Handles rendering lists of lists into an HTML table."""
-    def __init__(self, data: TypingList[TypingList[str]]):
+    def __init__(self, data: TypingList[TypingList[str]], **kwargs):
         super().__init__()
         tbody = Tbody()
         for row_data in data:
@@ -488,11 +499,11 @@ class NumpyArrayTable(Div):
 """ Table with dataframe input """
 class DataFrameTable(Table):
     """Handles rendering pandas DataFrames into an HTML table with headers."""
-    def __init__(self, df: pd.DataFrame):
-        super().__init__()
+    def __init__(self, df: pd.DataFrame, header_attributes = {}, content_attributes = {}, **kwargs):
+        super().__init__(**kwargs)
 
         # Create table header
-        thead = Thead()
+        thead = Thead(attributes = header_attributes)
         header_row = Tr()
 
         # Auto-detect whether to show the index
@@ -513,7 +524,7 @@ class DataFrameTable(Table):
 
             # Add index column if `show_index` is enabled
             if show_index:
-                row.append(Th(content=str(index)))
+                row.append(Th(content=str(index), attributes = content_attributes))
             
             # Add all other row values
             for cell in row_data:
@@ -539,7 +550,9 @@ class DataFrameTable(Table):
 """ Container (Custom) just to plot some elements gathered in groups """
 class Container(Div):
     """Represents a collapsible section that can contain other HTML elements."""
-    def __init__(self, title: str = None, layout: str = "vertical", id: Optional[str] = None, **kwargs):
+    def __init__(self, title: str = None, layout: str = "vertical", id: Optional[str] = None, 
+                 header_attributes = {}, content_attributes = {},
+                   **kwargs):
         
         super().__init__(id=id or "custom-container", class_name="collapsible-container", **kwargs)
         
@@ -549,12 +562,12 @@ class Container(Div):
         # If title, add header 
         if title:
             # Header (clickable, contains title and triangle)
-            self.header = Div(class_name="header")
+            self.header = Div(class_name="header", attributes = header_attributes)
             self.header.append(Span(title))  # Title text
         
         # Content (container for user elements)
         self.wrapper = Div(class_name=f"{layout}-wrapper")
-        self.content_div = Div(class_name="content")
+        self.content_div = Div(class_name="content", attributes = content_attributes)
         self.content_div.append(self.wrapper)
 
         # Restart the children (otherwise the list will be out of order because of the super call)
@@ -585,19 +598,20 @@ class Container(Div):
 """ Collapsible container """
 class CollapsibleContainer(Container):
     """Represents a collapsible section that can contain other HTML elements."""
-    def __init__(self, title: str, layout: str = "vertical", id: Optional[str] = None, **kwargs):
+    def __init__(self, title: str, layout: str = "vertical", id: Optional[str] = None, header_attributes = {},
+                 content_attributes = {}, **kwargs):
         
         # Use title = None, because we will create the header here
         super().__init__(title = None, id = id, layout = layout, **kwargs)
         
         # Modify the header (clickable, contains title and triangle)
-        self.header = Div(class_name="header", attributes={"onclick": "toggleContent(this)"})
+        self.header = Div(class_name="header", attributes={"onclick": "toggleContent(this)", **header_attributes})
         self.header.append(Div(class_name="triangle"))  # Triangle for toggle icon
         self.header.append(Span(title))  # Title text
 
         # Content (container for user elements)
         self.wrapper = Div(class_name=f"{layout}-wrapper")
-        self.content_div = Div(class_name="content")
+        self.content_div = Div(class_name="content", attributes = content_attributes)
         self.content_div.append(self.wrapper)
 
         # Add required function for toggling
@@ -636,7 +650,16 @@ class Image(ContainerElement):
         attributes = {}
         if isinstance(source, str):
             if embed:
-                img_element = Img(self._encode_image(source))
+                # We want to wrap the image in an <a href> tag so it can be downloaded and saved!
+                encoded = self._encode_image(source)
+                img_element = Img(encoded)
+                # href
+                a_element = A(href=encoded, attributes={"download": "plot.png"})
+                # Set the image as the content of the <a> tag
+                a_element.append(img_element)
+                # Thus the a element is our new "img_element"
+                img_element = a_element
+
             else:
                 img_element = Img(source)
             # The header must be the same width as the image
@@ -661,8 +684,9 @@ class Image(ContainerElement):
         elif isinstance(source, (plt.Figure, plt.Axes)):
             img_element = Img(self._encode_matplotlib(source))
             # Get the width 
-            width = source.get_figwidth()
-            attributes['style'] = f"width: {width}px;"
+            width_px = int(source.get_figwidth() * source.dpi)
+            height_px = int(source.get_figheight() * source.dpi)
+            attributes['style'] = f"width: {width_px}px;"
             # Close the figure if it's a temporary one
             if isinstance(source, plt.Figure):
                 plt.close(source)
@@ -772,12 +796,12 @@ class TabbedContainer(Div):
 
 class Markdown(Div):
     """A div that renders Markdown content as HTML with syntax highlighting."""
-    def __init__(self, text: str, **kwargs):
+    def __init__(self, text: str, attributes = {}, **kwargs):
         super().__init__(class_name="markdown-body", **kwargs)
         self.text = text
         self.rendered_html = self._convert_markdown(text)
 
-        content_wrapper = Div(class_name="md-content")
+        content_wrapper = Div(class_name="md-content", **attributes)
         content_wrapper.append(RawHTML(self.rendered_html))
 
         self.append(content_wrapper)
